@@ -2,7 +2,7 @@ import React from "react";
 import { useTheme } from "@mui/material/styles";
 import { Link as RouterLink } from "react-router-dom";
 import { Card, CardContent, Typography, Grid } from "@mui/material";
-import Logo from "../data/avatar.jpg";
+import Logo from "../data/mp.png";
 import {
   Box,
   Button,
@@ -60,13 +60,14 @@ const Signin = () => {
               },
               maxWidth: "475px",
               margin: "24px auto",
+              borderRadius: "26px",
             }}
           >
             <CardContent sx={{ p: theme.spacing(5, 4, 3, 4) }}>
               <Grid
                 container
                 direction="column"
-                spacing={4}
+                spacing={2}
                 justifyContent="center"
               >
                 <Grid item xs={12}>
@@ -81,58 +82,16 @@ const Signin = () => {
                     </Grid>
                     <Grid item>
                       <RouterLink to="/">
-                        <img alt="Auth method" src={Logo} />
+                        <img
+                          alt="Auth method"
+                          src={Logo}
+                          style={{ width: "8rem", height: "8rem" }}
+                        />
                       </RouterLink>
                     </Grid>
                   </Grid>
                 </Grid>
                 <Grid item xs={12}>
-                  {/* <AuthLogin /> */}
-                  <Grid container justifyContent="center">
-                    <Grid item xs={12}>
-                      <Button
-                        fullWidth={true}
-                        sx={{
-                          fontSize: { md: "1rem", xs: "0.875rem" },
-                          fontWeight: 500,
-                          backgroundColor: theme.palette.grey[50],
-                          color: theme.palette.grey[600],
-                          textTransform: "capitalize",
-                          "&:hover": {
-                            backgroundColor: theme.palette.grey[100],
-                          },
-                        }}
-                        size="large"
-                        variant="contained"
-                      >
-                        {/* <img
-                          src={Google}
-                          alt="google"
-                          width="20px"
-                          style={{
-                            marginRight: "16px",
-                            "@media (maxWidth:899.95px)": {
-                              marginRight: "8px",
-                            },
-                          }}
-                        />{" "} */}
-                        Sign in with Google
-                      </Button>
-                    </Grid>
-                  </Grid>
-
-                  <Box alignItems="center" display="flex" mt={2}>
-                    <Divider sx={{ flexGrow: 1 }} orientation="horizontal" />
-                    <Typography
-                      color="textSecondary"
-                      variant="h5"
-                      sx={{ m: theme.spacing(2) }}
-                    >
-                      OR
-                    </Typography>
-                    <Divider sx={{ flexGrow: 1 }} orientation="horizontal" />
-                  </Box>
-
                   <Formik
                     initialValues={{
                       email: "",

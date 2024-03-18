@@ -1,54 +1,45 @@
 import React, { useState, useEffect } from "react";
-import styled from "styled-components"; // Import styled-components
 import {
   GridComponent,
   ColumnsDirective,
   ColumnDirective,
   Page,
   Search,
+  Sort,
   Inject,
   Toolbar,
+  Filter,
 } from "@syncfusion/ej2-react-grids";
 import { Header } from "../components";
 
+import { NavLink } from "react-router-dom";
+
 const Users = () => {
-  const [userData, setUserData] = useState([]); // State to store user data
-  const [loading, setLoading] = useState(true); // State to track loading status
-  const [error, setError] = useState(null); // State to store error message
+  const [userData, setUserData] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
   useEffect(() => {
-    // Function to fetch user data from the API
     const fetchUserData = async () => {
       try {
-        const response = await fetch("http://localhost:5000/user/all-userdata"); // Make GET request to your API endpoint
+        const response = await fetch("http://localhost:5000/user/all-userdata");
         if (!response.ok) {
           throw new Error("Failed to fetch user data");
         }
-        const data = await response.json(); // Parse response body as JSON
-        setUserData(data.users); // Update state with fetched user data
-        setLoading(false); // Update loading status
+        const data = await response.json();
+        setUserData(data.users);
+        setLoading(false);
         console.log("Fetched user data:", data.users);
       } catch (error) {
         console.error("Error fetching user data:", error);
-        setError(error.message); // Update error state
-        setLoading(false); // Update loading status
+        setError(error.message);
+        setLoading(false);
       }
     };
 
-    fetchUserData(); // Call the function to fetch user data when the component mounts
-  }, []); // Empty dependency array ensures the effect runs only once
+    fetchUserData();
+  }, []);
 
-  if (loading) {
-    return <div>Loading...</div>;
-  }
-
-  if (error) {
-    return <div>Error: {error}</div>;
-  }
-
-  console.log("Render userData:", userData); // Log userData to ensure it's populated
-
-  // Custom component to render the edit button
   const ActionButtonsTemplate = () => {
     return (
       <div>
@@ -57,30 +48,6 @@ const Users = () => {
     );
   };
 
-  // Styled component for userRole
-  // const UserRoleButton = styled.button`
-  //   background-color: ${({ userRole }) =>
-  //     userRole === "employer"
-  //       ? "#007bff"
-  //       : userRole === "contractor"
-  //       ? "#28a745"
-  //       : "#6c757d"};
-  //   color: white;
-  //   padding: 3px 10px;
-  //   border: none;
-  //   border-radius: 6px;
-  //   cursor: pointer;
-  //   transition: background-color 0.3s ease;
-
-  //   &:hover {
-  //     background-color: ${({ userRole }) =>
-  //       userRole === "employer"
-  //         ? "#0056b3"
-  //         : userRole === "contractor"
-  //         ? "#218838"
-  //         : "#545b62"};
-  //   }
-  // `;
   const UserRoleButton = ({ userRole }) => {
     let backgroundColor;
     switch (userRole) {
@@ -108,8 +75,16 @@ const Users = () => {
       </button>
     );
   };
-
-  const MobileVerficationState = ({ isMobileVerified }) => {
+  const AddressTemplate = ({ address }) => (
+    <div>
+      <p>{address.street}</p>
+      <p>{address.city}</p>
+      <p>
+        {address.state}, {address.pincode}
+      </p>
+    </div>
+  );
+  const MobileVerificationState = ({ isMobileVerified }) => {
     const StatusBg = isMobileVerified ? "green" : "red";
 
     return (
@@ -119,7 +94,6 @@ const Users = () => {
             backgroundColor: StatusBg,
             borderRadius: "50%",
             width: "12px",
-
             height: "12px",
           }}
         />
@@ -127,47 +101,98 @@ const Users = () => {
       </div>
     );
   };
+  const ApprovedState = ({ isApproved }) => {
+    const StatusBg = isApproved ? "green" : "red";
+
+    return (
+      <div className="flex gap-2 items-center text-gray-700 capitalize">
+        <div
+          style={{
+            backgroundColor: StatusBg,
+            borderRadius: "50%",
+            width: "12px",
+            height: "12px",
+          }}
+        />
+        <p>{isApproved ? "Approved" : "Not Approved"}</p>
+      </div>
+    );
+  };
+  const loadingIndicator = { indicatorType: "Shimmer" }; // Loading indicator configuration
 
   return (
     <div className="m-2 md:m-10 p-2 md:p-10 bg-white rounded-3xl">
-      <Header category="Page" title="Registered Users" />
+      <div className="flex justify-between items-center mb-4">
+        <Header category="Page" title="Registered Users" />
+        <NavLink
+          to="/form"
+          className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
+        >
+          Add User
+        </NavLink>
+      </div>
       <GridComponent
         dataSource={userData}
         allowPaging
         allowSorting
+        allowFiltering
         toolbar={["Search"]}
         width="auto"
+        loadingIndicator={loadingIndicator} // Add loading indicator
       >
-        {/* Render columns dynamically based on the userData */}
         <ColumnsDirective>
           <ColumnDirective
             field="userRole"
             headerText="Role"
-            // template={({ userRole }) => (
-            //   <UserRoleButton userRole={userRole}>{userRole}</UserRoleButton>
-            // )}
             template={({ userRole }) => (
               <UserRoleButton userRole={userRole}></UserRoleButton>
             )}
+            width="100"
           />
-          <ColumnDirective field="name" headerText="Name" />
-          <ColumnDirective field="mobileNumber" headerText="Mobile Number" />
+          <ColumnDirective field="name" headerText="Name" width="90" />
+          <ColumnDirective
+            field="mobileNumber"
+            headerText="Mobile Number"
+            width="100"
+          />
+          <ColumnDirective
+            field="address"
+            headerText="Address"
+            allowFiltering={false}
+            template={AddressTemplate}
+            width="100"
+          />
+          <ColumnDirective
+            field="address.city"
+            headerText="City"
+            allowFiltering={true}
+            width="100"
+          />
+          <ColumnDirective
+            field="isApproved"
+            headerText="Login Approved"
+            template={({ isApproved }) => (
+              <ApprovedState isApproved={isApproved}></ApprovedState>
+            )}
+            width="100"
+          />
           <ColumnDirective
             field="isMobileVerified"
             headerText="Verified"
             template={({ isMobileVerified }) => (
-              <MobileVerficationState
+              <MobileVerificationState
                 isMobileVerified={isMobileVerified}
-              ></MobileVerficationState>
+              ></MobileVerificationState>
             )}
+            width="100"
           />
-
           <ColumnDirective
             headerText="Actions"
             template={ActionButtonsTemplate}
+            width="100"
           />
         </ColumnsDirective>
-        <Inject services={[Page, Search, Toolbar]} />
+        <Inject services={[Page, Search, Toolbar, Filter, Sort]} />
       </GridComponent>
     </div>
   );
