@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { Formik, Form, Field, ErrorMessage } from "formik";
 import * as Yup from "yup";
 import Swal from "sweetalert2";
+import { NavLink } from "react-router-dom";
 const RegistrationSchema = Yup.object().shape({
   userRole: Yup.string().required("User role is required"),
   name: Yup.string().required("Name is required"),
@@ -132,10 +133,14 @@ const FormComponent = () => {
       >
         {({ isSubmitting, values, setFieldValue, resetForm }) => (
           <Form className="bg-white shadow-md rounded px-8 pt-6 pb-8 mb-4">
-            <h2 className="text-xl font-bold mb-4 mt-5">
-              Personal Information
-            </h2>
-
+            <div className="flex justify-between">
+              <h2 className="text-xl font-bold mb-4 mt-5">
+                Personal Information
+              </h2>
+              <NavLink to={`/user`} className="mt-9 border-color">
+                Close
+              </NavLink>
+            </div>
             <div className="mb-4">
               <label
                 htmlFor="userRole"

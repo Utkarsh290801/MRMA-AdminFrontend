@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import {
   GridComponent,
   ColumnsDirective,
@@ -6,44 +6,106 @@ import {
   Page,
   Search,
   Sort,
+  PdfExport,
+  ExcelExport,
   Inject,
   Toolbar,
   Filter,
 } from "@syncfusion/ej2-react-grids";
 import { Header } from "../components";
-
+import { AiOutlineEdit } from "react-icons/ai";
+import { FaCheck } from "react-icons/fa";
 import { NavLink } from "react-router-dom";
-
+import { MdBlock } from "react-icons/md";
+import { ImCross } from "react-icons/im";
+import { CgUnblock } from "react-icons/cg";
 const Users = () => {
   const [userData, setUserData] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  let gridInstance = useRef(null);
 
-  useEffect(() => {
-    const fetchUserData = async () => {
-      try {
-        const response = await fetch("http://localhost:5000/user/all-userdata");
-        if (!response.ok) {
-          throw new Error("Failed to fetch user data");
-        }
-        const data = await response.json();
-        setUserData(data.users);
-        setLoading(false);
-        console.log("Fetched user data:", data.users);
-      } catch (error) {
-        console.error("Error fetching user data:", error);
-        setError(error.message);
-        setLoading(false);
+  const fetchUserData = async () => {
+    try {
+      const response = await fetch("http://localhost:5000/user/all-userdata");
+      if (!response.ok) {
+        throw new Error("Failed to fetch user data");
       }
-    };
-
+      const data = await response.json();
+      setUserData(data.users);
+      setLoading(false);
+      console.log("Fetched user data:", data.users);
+    } catch (error) {
+      console.error("Error fetching user data:", error);
+      setError(error.message);
+      setLoading(false);
+    }
+  };
+  useEffect(() => {
     fetchUserData();
   }, []);
-
-  const ActionButtonsTemplate = () => {
+  const handleBlockUser = async ({ _id, isBlocked }) => {
+    try {
+      const response = await fetch(`http://localhost:5000/user/update/${_id}`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ isBlocked: !isBlocked }), // Toggle the isBlocked value
+      });
+      if (!response.ok) {
+        throw new Error("Failed to update user");
+      }
+      // Refresh user data after successful update
+      fetchUserData();
+    } catch (error) {
+      console.error("Error updating user:", error);
+    }
+  };
+  const handleApproveUser = async ({ _id, isApproved }) => {
+    try {
+      const response = await fetch(`http://localhost:5000/user/update/${_id}`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ isApproved: !isApproved }), // Toggle the isApproved value
+      });
+      if (!response.ok) {
+        throw new Error("Failed to update user");
+      }
+      // Refresh user data after successful update
+      fetchUserData();
+    } catch (error) {
+      console.error("Error updating user:", error);
+    }
+  };
+  const ActionButtonsTemplate = ({ _id, isBlocked, isApproved }) => {
     return (
-      <div>
-        <button>Edit</button>
+      <div className="flex items-center gap-4">
+        <NavLink to={`/edit-user/${_id}`}>
+          <AiOutlineEdit size="20" />
+        </NavLink>
+        <div
+          onClick={() => handleBlockUser({ _id, isBlocked })}
+          style={{ cursor: "pointer" }}
+        >
+          {isBlocked ? (
+            <MdBlock size="20" title="Unblock" color="red" />
+          ) : (
+            <CgUnblock size="20" title="Block" />
+          )}
+        </div>
+        <div
+          onClick={() => handleApproveUser({ _id, isApproved })}
+          style={{ cursor: "pointer" }}
+        >
+          {isApproved ? (
+            <ImCross size="15" title="Unapprove" />
+          ) : (
+            <FaCheck size="15" title="Approve" />
+          )}
+        </div>
       </div>
     );
   };
@@ -101,6 +163,11 @@ const Users = () => {
       </div>
     );
   };
+  const toolbarClick = (args) => {
+    if (gridInstance.current && args.item.id === "gridcomp_pdfexport") {
+      gridInstance.current.pdfExport();
+    }
+  };
   const ApprovedState = ({ isApproved }) => {
     const StatusBg = isApproved ? "green" : "red";
 
@@ -124,23 +191,35 @@ const Users = () => {
     <div className="m-2 md:m-10 p-2 md:p-10 bg-white rounded-3xl">
       <div className="flex justify-between items-center mb-4">
         <Header category="Page" title="Registered Users" />
-        <NavLink
-          to="/form"
-          className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
-        >
-          Add User
-        </NavLink>
+        <div className="flex gap-4">
+          <NavLink
+            to="/form"
+            className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
+          >
+            Add User
+          </NavLink>
+        </div>
       </div>
       <GridComponent
+        id="gridcomp"
         dataSource={userData}
         allowPaging
         allowSorting
         allowFiltering
-        toolbar={["Search"]}
+        toolbar={["Search", "PdfExport"]}
+        toolbarClick={toolbarClick}
         width="auto"
-        loadingIndicator={loadingIndicator} // Add loading indicator
+        loadingIndicator={loadingIndicator}
+        allowPdfExport={true}
+        ref={gridInstance}
       >
         <ColumnsDirective>
+          <ColumnDirective
+            field="_id"
+            headerText="ID"
+            isPrimaryKey={true}
+            visible={false}
+          />
           <ColumnDirective
             field="userRole"
             headerText="Role"
@@ -188,11 +267,23 @@ const Users = () => {
           />
           <ColumnDirective
             headerText="Actions"
-            template={ActionButtonsTemplate}
+            template={(props) => (
+              <ActionButtonsTemplate {...props}></ActionButtonsTemplate>
+            )}
             width="100"
           />
         </ColumnsDirective>
-        <Inject services={[Page, Search, Toolbar, Filter, Sort]} />
+        <Inject
+          services={[
+            Page,
+            Search,
+            Toolbar,
+            Filter,
+            Sort,
+            PdfExport,
+            ExcelExport,
+          ]}
+        />
       </GridComponent>
     </div>
   );

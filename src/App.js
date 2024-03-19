@@ -11,6 +11,7 @@ import { useStateContext } from "./contexts/ContextProvider";
 import "./App.css";
 import Signin from "./pages/Signin";
 import FormComponent from "./pages/FormComponent";
+import EditForm from "./pages/EditForm";
 
 const App = () => {
   const {
@@ -70,6 +71,7 @@ const App = () => {
                     <Route path="/orders" element={<Orders />} />
                     <Route path="/customers" element={<Customers />} />
                     <Route path="/form" element={<FormComponent />} />
+                    <Route path="/edit-user/:_id" element={<EditForm />} />
                   </Routes>
                 </div>
               </div>
